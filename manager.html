@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manager Panel - Price Registry</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f0f2f5; }
+        .sticky-form { position: sticky; top: 20px; }
+        .accordion-button:not(.collapsed) { background-color: #e8f5e9; color: #1b5e20; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-success mb-4 shadow"><div class="container-fluid"><span class="navbar-brand fw-bold">MANAGER DASHBOARD</span><button class="btn btn-outline-light btn-sm" onclick="location.href='index.html'">View Portal</button></div></nav>
+
+<div class="container-fluid px-4">
+    <div class="row">
+        <!-- FORM -->
+        <div class="col-md-4">
+            <div class="card p-4 shadow-sm sticky-form border-0">
+                <h5 id="formTitle" class="fw-bold text-success">New Monitoring Entry</h5><hr>
+                <input type="hidden" id="editId">
+                <div class="mb-2"><label class="small fw-bold">Category</label>
+                    <select id="pCat" class="form-select">
+                        <option>Fish and Seafoods</option><option>Pork/Beef/Chicken</option><option>Vegetables</option>
+                        <option>Rice and Corn</option><option>Fuel & Petroleum</option><option>Other Basic Commodities</option>
+                    </select>
+                </div>
+                <div class="mb-2"><input type="text" id="pName" class="form-control" placeholder="Product Name"></div>
+                <div class="mb-2"><input type="text" id="pSub" class="form-control" placeholder="Part / Kind"></div>
+                <div class="row g-2 mb-2">
+                    <div class="col-8"><input type="text" id="pPrice" class="form-control" placeholder="Price (e.g. 150-160)"></div>
+                    <div class="col-4"><select id="pUnit" class="form-select"><option>kg</option><option>Liter</option><option>Bdl</option><option>Pc</option><option>Tank</option></select></div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><label class="small">From</label><input type="date" id="pFrom" class="form-control"></div>
+                    <div class="col-6"><label class="small">Until</label><input type="date" id="pTo" class="form-control"></div>
+                </div>
+                <button id="btnSave" class="btn btn-success w-100 fw-bold">Save Entry</button>
+                <button id="btnCancel" class="btn btn-outline-secondary w-100 mt-2 d-none">Cancel</button>
+            </div>
+        </div>
+        <!-- LIST -->
+        <div class="col-md-8">
+            <h5 class="fw-bold mb-3">Registry History (Grouped)</h5>
+            <div class="accordion shadow-sm" id="priceAccordion"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    const firebaseConfig = { apiKey: "AIzaSyAyWJulSuH_3gUo76aiLoy5L8ly5tk0ypQ", authDomain: "appdev-80339.firebaseapp.com", projectId: "appdev-80339", storageBucket: "appdev-80339.firebasestorage.app", messagingSenderId: "213205773696", appId: "1:213205773696:web:aca615f3274ee11f09e565" };
+    const app = initializeApp(firebaseConfig), db = getFirestore(app);
+
+    document.getElementById('btnSave').onclick = async () => {
+        const id = document.getElementById('editId').value;
+        const p = { name: document.getElementById('pName').value, category: document.getElementById('pCat').value, subType: document.getElementById('pSub').value, price: document.getElementById('pPrice').value, unit: document.getElementById('pUnit').value, dateFrom: document.getElementById('pFrom').value, dateTo: document.getElementById('pTo').value };
+        if(!p.name || !p.price) return alert("Fill all fields");
+        id ? await updateDoc(doc(db, "products", id), p) : await addDoc(collection(db, "products"), p);
+        location.reload();
+    };
+
+    onSnapshot(collection(db, "products"), (snap) => {
+        const accordion = document.getElementById('priceAccordion');
+        accordion.innerHTML = "";
+        let items = []; snap.forEach(d => items.push({id: d.id, ...d.data()}));
+        const groups = items.reduce((acc, p) => { acc[p.category] = acc[p.category] || []; acc[p.category].push(p); return acc; }, {});
+
+        Object.keys(groups).forEach((cat, idx) => {
+            const catId = `cat_${idx}`;
+            let rows = groups[cat].map(p => `<tr><td><b>${p.name}</b><br><small>${p.subType}</small></td><td class="fw-bold">₱${p.price}/${p.unit}</td><td><button class="btn btn-sm btn-outline-primary edit-btn" data-id="${p.id}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger del-btn" data-id="${p.id}"><i class="bi bi-trash"></i></button></td></tr>`).join('');
+            accordion.innerHTML += `<div class="accordion-item mb-2 border-0 shadow-sm rounded overflow-hidden">
+                <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" data-bs-toggle="collapse" data-bs-target="#${catId}">${cat}</button></h2>
+                <div id="${catId}" class="accordion-collapse collapse"><div class="accordion-body p-0"><table class="table mb-0"><tbody>${rows}</tbody></table></div></div>
+            </div>`;
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = async () => {
+                const s = await getDoc(doc(db, "products", btn.getAttribute('data-id')));
+                const d = s.data(); document.getElementById('editId').value = btn.getAttribute('data-id');
+                document.getElementById('pName').value = d.name; document.getElementById('pCat').value = d.category;
+                document.getElementById('pSub').value = d.subType; document.getElementById('pPrice').value = d.price;
+                document.getElementById('pUnit').value = d.unit; document.getElementById('pFrom').value = d.dateFrom; document.getElementById('pTo').value = d.dateTo;
+                document.getElementById('btnSave').innerText = "Update Now"; document.getElementById('btnCancel').classList.remove('d-none'); window.scrollTo(0,0);
+            };
+        });
+        document.querySelectorAll('.del-btn').forEach(btn => {
+            btn.onclick = async () => { if(confirm("Delete entry?")) await deleteDoc(doc(db, "products", btn.getAttribute('data-id'))); };
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
