@@ -1,71 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Admin - Master Control</title>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Naval Price Watch</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>body{background:#0d1117; color:white;} .card{color:black; border-radius:12px;} .sticky-form{position:sticky; top:20px;}</style>
+    <style>
+        body { background-color: #0d1117; color: white; font-family: 'Inter', sans-serif; }
+        .card { color: black; border-radius: 15px; border: none; }
+        .navbar { background-color: #0d6efd !important; }
+        .accordion-button:not(.collapsed) { background-color: #e7f1ff; color: #0c63e4; }
+        .sticky-form { position: sticky; top: 20px; }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-dark bg-primary mb-4 shadow"><div class="container-fluid"><span class="navbar-brand fw-bold">MASTER ADMIN PANEL</span><button class="btn btn-light btn-sm" onclick="location.href='index.html'">Logout</button></div></nav>
-<div class="container-fluid px-4"><div class="row">
-    <div class="col-md-4">
-        <div class="card p-3 shadow mb-4 border-warning border-top border-5">
-            <h5 class="fw-bold"><i class="bi bi-people-fill"></i> Pending Managers</h5><hr>
-            <table class="table table-sm align-middle"><thead><tr><th>Email</th><th>Action</th></tr></thead><tbody id="uList"></tbody></table>
+
+<nav class="navbar navbar-dark mb-4 shadow">
+    <div class="container-fluid">
+        <span class="navbar-brand fw-bold"><i class="bi bi-shield-lock-fill me-2"></i>MASTER ADMIN CONSOLE</span>
+        <button class="btn btn-light btn-sm" onclick="location.href='index.html'">Logout / Home</button>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    <div class="row">
+        <!-- LEFT: USER & PRODUCT FORM -->
+        <div class="col-md-4">
+            <!-- User Management -->
+            <div class="card p-3 shadow mb-4 border-warning border-top border-5">
+                <h5 class="fw-bold"><i class="bi bi-people-fill me-2"></i>Pending Manager Approvals</h5>
+                <hr>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>Manager Email</th><th>Action</th></tr></thead>
+                        <tbody id="userApprovalList"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Master Product Form -->
+            <div class="card p-4 shadow sticky-form border-primary border-top border-5">
+                <h5 id="formTitle" class="fw-bold">Master Price Registry Form</h5>
+                <hr>
+                <input type="hidden" id="adminEditId">
+                <div class="mb-2">
+                    <label class="small fw-bold">Category</label>
+                    <select id="adminCat" class="form-select">
+                        <option>Fish and Seafoods</option><option>Pork/Beef/Chicken</option><option>Vegetables</option>
+                        <option>Rice and Corn</option><option>Fuel & Petroleum</option><option>Other Basic Commodities</option>
+                    </select>
+                </div>
+                <div class="mb-2"><input type="text" id="adminName" class="form-control" placeholder="Product Name"></div>
+                <div class="mb-2"><input type="text" id="adminSub" class="form-control" placeholder="Part / Variant"></div>
+                <div class="row g-2 mb-2">
+                    <div class="col-8"><input type="text" id="adminPrice" class="form-control" placeholder="Price (e.g. 150-160)"></div>
+                    <div class="col-4">
+                        <select id="adminUnit" class="form-select">
+                            <option value="kg">kg</option><option value="Liter">Liter</option>
+                            <option value="Tank">Tank</option><option value="Pc">Pc</option><option value="Bdl">Bdl</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><label class="small fw-bold">From</label><input type="date" id="adminFrom" class="form-control"></div>
+                    <div class="col-6"><label class="small fw-bold">To</label><input type="date" id="adminTo" class="form-control"></div>
+                </div>
+                <button type="button" id="btnAdminSave" class="btn btn-primary w-100 fw-bold">Save Master Entry</button>
+                <button type="button" id="btnAdminCancel" class="btn btn-link w-100 d-none text-danger fw-bold">Cancel Editing</button>
+            </div>
         </div>
-        <div class="card p-4 shadow sticky-form border-primary border-top border-5">
-            <h5 id="formTitle" class="fw-bold">Master Registry Form</h5><hr>
-            <input type="hidden" id="aEditId">
-            <div class="mb-2"><select id="aCat" class="form-select"><option>Fish and Seafoods</option><option>Pork/Beef/Chicken</option><option>Vegetables</option><option>Rice and Corn</option><option>Fuel & Petroleum</option><option>Other Basic Commodities</option></select></div>
-            <div class="mb-2"><input type="text" id="aName" class="form-control" placeholder="Product"></div>
-            <div class="mb-2"><input type="text" id="aSub" class="form-control" placeholder="Part"></div>
-            <div class="row g-2 mb-2"><div class="col-8"><input type="text" id="aPrice" class="form-control" placeholder="Price"></div><div class="col-4"><select id="aUnit" class="form-select"><option>kg</option><option>Liter</option><option>Tank</option><option>Pc</option></select></div></div>
-            <div class="row g-2 mb-3"><div class="col-6"><label class="small">From</label><input type="date" id="aFrom" class="form-control"></div><div class="col-6"><label class="small">To</label><input type="date" id="aTo" class="form-control"></div></div>
-            <button id="btnAdminSave" class="btn btn-primary w-100 fw-bold">Save Master Entry</button>
-            <button id="btnAdminCancel" class="btn btn-link w-100 d-none" onclick="location.reload()">Cancel</button>
+
+        <!-- RIGHT: MASTER LIST -->
+        <div class="col-md-8 text-dark">
+            <div class="bg-white p-4 rounded shadow">
+                <h5 class="fw-bold mb-3"><i class="bi bi-list-ul me-2"></i>Grouped Registry History</h5>
+                <div class="accordion" id="adminAccordion"></div>
+            </div>
         </div>
     </div>
-    <div class="col-md-8 text-dark"><div class="bg-white p-4 rounded shadow"><h5 class="fw-bold mb-3">Grouped Registry History</h5><div class="accordion" id="adminAccordion"></div></div></div>
-</div></div>
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    const firebaseConfig = { apiKey: "AIzaSyAyWJulSuH_3gUo76aiLoy5L8ly5tk0ypQ", authDomain: "appdev-80339.firebaseapp.com", projectId: "appdev-80339", storageBucket: "appdev-80339.firebasestorage.app", messagingSenderId: "213205773696", appId: "1:213205773696:web:aca615f3274ee11f09e565" };
-    const app = initializeApp(firebaseConfig), db = getFirestore(app), auth = getAuth(app);
     
-    onAuthStateChanged(auth, async (u) => { if (u) { const d = await getDoc(doc(db, "users", u.uid)); if (d.data().role !== 'admin') window.location.href = "index.html"; } else window.location.href = "index.html"; });
+    const firebaseConfig = { 
+        apiKey: "AIzaSyAyWJulSuH_3gUo76aiLoy5L8ly5tk0ypQ", 
+        authDomain: "appdev-80339.firebaseapp.com", 
+        projectId: "appdev-80339", 
+        storageBucket: "appdev-80339.firebasestorage.app", 
+        messagingSenderId: "213205773696", 
+        appId: "1:213205773696:web:aca615f3274ee11f09e565" 
+    };
+    const app = initializeApp(firebaseConfig), db = getFirestore(app), auth = getAuth(app);
 
-    onSnapshot(collection(db, "users"), (snap) => {
-        const ul = document.getElementById('uList'); ul.innerHTML = "";
-        snap.forEach(d => { const u = d.data(); if(u.role === 'admin') return; ul.innerHTML += `<tr><td><small>${u.email}</small><br><span class="badge ${u.status==='pending'?'bg-warning':'bg-success'} text-dark">${u.status}</span></td><td><button class="btn btn-success btn-sm app-u" data-id="${d.id}"><i class="bi bi-check"></i></button> <button class="btn btn-danger btn-sm del-u" data-id="${d.id}"><i class="bi bi-trash"></i></button></td></tr>`; });
-        document.querySelectorAll('.app-u').forEach(b => b.onclick = async () => await updateDoc(doc(db, "users", b.getAttribute('data-id')), { status: 'approved' }));
-        document.querySelectorAll('.del-u').forEach(b => b.onclick = async () => { if(confirm("Del user?")) await deleteDoc(doc(db, "users", b.getAttribute('data-id'))); });
+    // 1. SECURITY CHECK (Ensures only Admin can stay here)
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const uDoc = await getDoc(doc(db, "users", user.uid));
+            if (!uDoc.exists() || uDoc.data().role !== 'admin') {
+                alert("Restricted Area."); window.location.href = "index.html";
+            }
+        } else { window.location.href = "index.html"; }
     });
 
+    // 2. USER MANAGEMENT (MANAGER APPROVALS)
+    onSnapshot(collection(db, "users"), (snap) => {
+        const uList = document.getElementById('userApprovalList'); uList.innerHTML = "";
+        snap.forEach(d => {
+            const u = d.data();
+            if(u.role === 'admin') return;
+            uList.innerHTML += `
+                <tr>
+                    <td><small class="fw-bold">${u.email}</small><br><span class="badge ${u.status==='pending'?'bg-warning':'bg-success'} text-dark">${u.status}</span></td>
+                    <td>
+                        <button class="btn btn-success btn-sm btn-approve" data-id="${d.id}"><i class="bi bi-check-lg"></i></button>
+                        <button class="btn btn-danger btn-sm btn-del-user" data-id="${d.id}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
+        });
+        document.querySelectorAll('.btn-approve').forEach(b => b.onclick = () => updateDoc(doc(db, "users", b.dataset.id), { status: 'approved' }));
+        document.querySelectorAll('.btn-del-user').forEach(b => b.onclick = () => { if(confirm("Remove User?")) deleteDoc(doc(db, "users", b.dataset.id)); });
+    });
+
+    // 3. MASTER PRODUCT SAVE/UPDATE
     document.getElementById('btnAdminSave').onclick = async () => {
-        const id = document.getElementById('aEditId').value, p = { name: document.getElementById('aName').value, category: document.getElementById('aCat').value, subType: document.getElementById('aSub').value, price: document.getElementById('aPrice').value, unit: document.getElementById('aUnit').value, dateFrom: document.getElementById('aFrom').value, dateTo: document.getElementById('aTo').value };
-        if(!p.name || !p.price) return alert("Fill form");
-        id ? await updateDoc(doc(db, "products", id), p) : await addDoc(collection(db, "products"), p);
-        location.reload();
+        const id = document.getElementById('adminEditId').value;
+        const p = {
+            name: document.getElementById('adminName').value, category: document.getElementById('adminCat').value,
+            subType: document.getElementById('adminSub').value, price: document.getElementById('adminPrice').value,
+            unit: document.getElementById('adminUnit').value, dateFrom: document.getElementById('adminFrom').value, 
+            dateTo: document.getElementById('adminTo').value
+        };
+        if(!p.name || !p.price) return alert("Required fields missing");
+
+        try {
+            if(id) await updateDoc(doc(db, "products", id), p);
+            else await addDoc(collection(db, "products"), p);
+            resetAdminForm();
+        } catch(e) { alert("Error: " + e.message); }
     };
 
+    // 4. MASTER PRODUCT LIST (GROUPED)
     onSnapshot(collection(db, "products"), (snap) => {
-        const acc = document.getElementById('adminAccordion'); acc.innerHTML = "";
+        const accordion = document.getElementById('adminAccordion'); accordion.innerHTML = "";
         let items = []; snap.forEach(d => items.push({id: d.id, ...d.data()}));
-        const groups = items.reduce((a, p) => { a[p.category] = a[p.category] || []; a[p.category].push(p); return a; }, {});
+        
+        const groups = items.reduce((acc, p) => {
+            const cat = p.category || "General"; acc[cat] = acc[cat] || []; acc[cat].push(p); return acc;
+        }, {});
+
         Object.keys(groups).forEach((cat, idx) => {
-            let rows = groups[cat].map(p => `<tr><td><b>${p.name}</b> (${p.subType})</td><td class="fw-bold">₱${p.price}/${p.unit || 'kg'}</td><td class="text-end"><button class="btn btn-sm btn-outline-primary ae" data-id="${p.id}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger ad" data-id="${p.id}"><i class="bi bi-trash"></i></button></td></tr>`).join('');
-            acc.innerHTML += `<div class="accordion-item mb-2 border rounded"><h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" data-bs-toggle="collapse" data-bs-target="#a_${idx}">${cat}</button></h2><div id="a_${idx}" class="accordion-collapse collapse"><div class="accordion-body p-0"><table class="table mb-0"><tbody>${rows}</tbody></table></div></div></div>`;
+            const catId = `admin_cat_${idx}`;
+            let rows = groups[cat].map(p => `
+                <tr>
+                    <td><b>${p.name}</b><br><small>${p.subType || '-'}</small></td>
+                    <td class="text-primary fw-bold">₱${p.price}/${p.unit || 'kg'}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary btn-master-edit" data-id="${p.id}"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger btn-master-del" data-id="${p.id}"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+
+            accordion.innerHTML += `
+                <div class="accordion-item mb-2 border">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" data-bs-toggle="collapse" data-bs-target="#${catId}">${cat}</button></h2>
+                    <div id="${catId}" class="accordion-collapse collapse"><div class="accordion-body p-0"><table class="table mb-0"><tbody>${rows}</tbody></table></div></div>
+                </div>`;
         });
-        document.querySelectorAll('.ae').forEach(b => b.onclick = async () => {
-            const s = await getDoc(doc(db, "products", b.getAttribute('data-id'))), d = s.data();
-            document.getElementById('aEditId').value = b.getAttribute('data-id'); document.getElementById('aName').value = d.name; document.getElementById('aCat').value = d.category; document.getElementById('aSub').value = d.subType; document.getElementById('aPrice').value = d.price; document.getElementById('aUnit').value = d.unit || 'kg'; document.getElementById('aFrom').value = d.dateFrom; document.getElementById('aTo').value = d.dateTo;
-            document.getElementById('formTitle').innerText = "Updating..."; document.getElementById('btnAdminSave').innerText = "Update Master"; document.getElementById('btnAdminCancel').classList.remove('d-none'); window.scrollTo(0,0);
+
+        document.querySelectorAll('.btn-master-edit').forEach(b => {
+            b.onclick = async () => {
+                const s = await getDoc(doc(db, "products", b.dataset.id)), d = s.data();
+                document.getElementById('adminEditId').value = b.dataset.id;
+                document.getElementById('adminName').value = d.name; document.getElementById('adminSub').value = d.subType;
+                document.getElementById('adminPrice').value = d.price; document.getElementById('adminUnit').value = d.unit || 'kg';
+                document.getElementById('adminFrom').value = d.dateFrom; document.getElementById('adminTo').value = d.dateTo;
+                document.getElementById('adminCat').value = d.category;
+                document.getElementById('formTitle').innerText = "Updating Entry...";
+                document.getElementById('btnAdminSave').innerText = "Apply Master Change";
+                document.getElementById('btnAdminCancel').classList.remove('d-none');
+                window.scrollTo(0,0);
+            };
         });
-        document.querySelectorAll('.ad').forEach(b => b.onclick = async () => { if(confirm("Del entry?")) await deleteDoc(doc(db, "products", b.getAttribute('data-id'))); });
+        document.querySelectorAll('.btn-master-del').forEach(b => {
+            b.onclick = async () => { if(confirm("Permanently delete?")) await deleteDoc(doc(db, "products", b.dataset.id)); };
+        });
     });
+
+    const resetAdminForm = () => {
+        document.getElementById('adminEditId').value = ""; document.getElementById('adminName').value = "";
+        document.getElementById('adminPrice').value = ""; document.getElementById('adminSub').value = "";
+        document.getElementById('adminFrom').value = ""; document.getElementById('adminTo').value = "";
+        document.getElementById('formTitle').innerText = "Master Price Registry Form";
+        document.getElementById('btnAdminSave').innerText = "Save Master Entry";
+        document.getElementById('btnAdminCancel').classList.add('d-none');
+    };
+    document.getElementById('btnAdminCancel').onclick = resetAdminForm;
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
